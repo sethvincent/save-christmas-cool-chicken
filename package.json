@@ -1,0 +1,24 @@
+{
+  "name": "hogjam2",
+  "description": "hogjam #2",
+  "version": "0.0.0",
+  "repository": {
+    "url": "git://github.com/sethvincent/hogjam2.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "beefy game.js:bundle.js --live"
+  },
+  "dependencies": {
+    "crtrdg-scene": "0.0.2",
+    "crtrdg-keyboard": "0.0.2",
+    "crtrdg-mouse": "0.0.3",
+    "crtrdg-gameloop": "~0.1.0",
+    "crtrdg-entity": "0.0.8",
+    "inherits": "~2.0.1"
+  },
+  "devDependencies": {
+    "beefy": "~0.6.0",
+    "browserify": "~2.36.1"
+  }
+}

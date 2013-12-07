@@ -70,6 +70,9 @@ function Chicken(options){
 inherits(Chicken, Entity);
 
 Chicken.prototype.move = function(){
+  this.velocity.x += this.speed;
+  this.velocity.y += this.speed;
+  
   this.position.x += this.velocity.x * this.friction;
   this.position.y += this.velocity.y * this.friction;
 

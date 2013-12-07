@@ -35,15 +35,27 @@ player.addTo(game);
 
 
 mouse.on('click', function(e){
-  var c = new Chicken({
-    camera: camera,
-    position: {
-      x: e.x,
-      y: e.y
-    }
-  });
-  c.addTo(game);
-  console.log(c)
+  if ('<shift>' in keyboard.keysDown){
+    var c = new Chicken({
+      camera: camera,
+      map: map,
+      position: {
+        x: e.x + camera.position.x,
+        y: e.y
+      }
+    });
+    c.addTo(game);
+  } else {
+    var c = new Chicken({
+      camera: camera,
+      map: map,
+      position: {
+        x: e.x + camera.position.x,
+        y: e.y
+      }
+    });
+    c.addTo(game);
+  }
 });
 
 

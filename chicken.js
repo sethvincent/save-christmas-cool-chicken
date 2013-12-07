@@ -8,6 +8,8 @@ function Chicken(options){
   Entity.call(this);
   var self = this;
   this.game = options.game;
+  this.map = options.map;
+  this.camera = options.camera;
 
   this.size = {
     x: 20,
@@ -31,12 +33,13 @@ function Chicken(options){
   this.color = '#f4f4ed';
   this.direction = 'right';
   this.visible = true;
-  this.camera = options.camera;
-
   this.left = this.position.x;
-  this.top = self.position.y;
+  this.top = this.position.y;
+
+  console.log(this.camera.position.x, this.position.x, this.camera.map.width)
 
   this.on('update', function(interval){ 
+    this.move();
     self.velocity.x = parseInt(self.velocity.x * this.friction);
     self.velocity.y = parseInt(self.velocity.y * this.friction);
     self.boundaries();
@@ -65,6 +68,14 @@ function Chicken(options){
 }
 
 inherits(Chicken, Entity);
+
+Chicken.prototype.move = function(){
+  this.position.x += this.velocity.x * this.friction;
+  this.position.y += this.velocity.y * this.friction;
+
+  this.left = this.position.x - this.camera.position.x;
+  this.top = this.position.y;
+};
 
 Chicken.prototype.boundaries = function(){
   if (this.position.x <= 0){

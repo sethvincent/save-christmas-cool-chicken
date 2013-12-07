@@ -59,8 +59,9 @@ function Chicken(options){
 
       context.fillRect(self.left+35, self.top, 5, 5);
 
-      context.fillRect(self.left+5, self.top+30, 5, 15);
-      context.fillRect(self.left+15, self.top+30, 5, 15);
+      context.fillStyle = 'black';
+      context.fillRect(self.left+20, self.top+1, 3, 3);
+     
 
       context.restore();
     }

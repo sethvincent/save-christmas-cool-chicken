@@ -20,14 +20,15 @@ Map.prototype.generate = function(ticks){
   context.canvas.width = this.width;
   context.canvas.height = this.height;
 
-  var blockSize = 5;
+  var blockSize = 4;
   var rand = randomInt(0, 255);
   var columns = parseInt(this.width / blockSize) + 1;
   var rows = parseInt(this.height / blockSize) + 1;
 
   for (var x = 0, i = 0; i < columns; x+=blockSize, i++){
-    for (var y = 0, j=0; j < rows; y+=blockSize, j++){      
-      context.fillStyle = randomRGBA(0, rand*j-10, 20*j, 110+y, 20, 100*j+10, .5);
+    for (var y = 0, j=0; j < rows; y+=blockSize, j++){
+
+      context.fillStyle = randomRGBA(200, 250, 20*j/100, 25*j/10, 20*i/100, 30*i/100, .9);
       context.fillRect(x, y, blockSize, blockSize);
     }
   }

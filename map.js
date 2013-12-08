@@ -6,7 +6,6 @@ var randomRGBA = require('./util/math').randomRGBA;
 module.exports = Map;
 
 function Map(game, width, height){
-  console.log(width, height)
   this.game = game;
   this.width = width;
   this.height = height;

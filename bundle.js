@@ -297,8 +297,8 @@ player.on('update', function(interval){
   if (chickens.length > 0){
     for (var i=0; i<chickens.length; i++){
       if (player.touches(chickens[i])){
-        window.location = 'http://img.izismile.com/img/img2/20091201/chicken_across_the_world_05.jpg';
-        game.pause();
+        //window.location = 'http://img.izismile.com/img/img2/20091201/chicken_across_the_world_05.jpg';
+        //game.pause();
         player.color = randomRGB(0, 256, 0, 256, 0, 256);
       }
     }
@@ -306,8 +306,8 @@ player.on('update', function(interval){
 
   if (player.position.x >= map.width - 340 && player.position.x <= map.width - 250){
     if (player.position.y > map.height - 520 && player.position.y < map.height - 350){
-      window.location = 'http://www.youtube.com/watch?v=2O6Qy-Bhyqs&feature=youtu.be&t=1m46s'
-      game.pause();
+      //window.location = 'http://www.youtube.com/watch?v=2O6Qy-Bhyqs&feature=youtu.be&t=1m46s'
+      //game.pause();
     }
   }
 });
@@ -327,11 +327,11 @@ game.on('draw', function(context){
 });
 
 game.on('pause', function(){
-  console.log('paused');
+  //console.log('paused');
 });
 
 game.on('resume', function(){
-  console.log('resumed');
+  //console.log('resumed');
 });
 
 
@@ -391,7 +391,6 @@ var randomRGBA = require('./util/math').randomRGBA;
 module.exports = Map;
 
 function Map(game, width, height){
-  console.log(width, height)
   this.game = game;
   this.width = width;
   this.height = height;
@@ -5564,8 +5563,6 @@ function Snow(options){
     x: options.x,
     y: -10
   }
-
-  console.log('snow created')
 
   this.on('update', function(){
     //this.position.x -= this.camera.position.x;

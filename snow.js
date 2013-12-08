@@ -19,8 +19,6 @@ function Snow(options){
     y: -10
   }
 
-  console.log('snow created')
-
   this.on('update', function(){
     //this.position.x -= this.camera.position.x;
     this.position.y += 1;

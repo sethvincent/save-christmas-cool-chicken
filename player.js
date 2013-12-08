@@ -63,34 +63,61 @@ function Player(options){
       self.left = self.position.x - self.camera.position.x;
       self.top = self.position.y - self.camera.position.y;
 
-      context.save();  
+      context.save();
 
-      context.fillStyle = '#fff';
-      context.fillRect(self.left, self.top, 30, 30);
+      if (this.direction === 'right'){
+        context.fillStyle = '#fff';
+        context.fillRect(self.left, self.top, 30, 30);
 
-      context.fillStyle = 'orange';
-      context.fillRect(self.left+30, self.top+5, 5, 5);
-      context.fillRect(self.left+35, self.top+10, 5, 5);
-      context.fillRect(self.left+35, self.top, 5, 5);
+        context.fillStyle = 'orange';
+        context.fillRect(self.left+30, self.top+5, 5, 5);
+        context.fillRect(self.left+35, self.top+10, 5, 5);
+        context.fillRect(self.left+35, self.top, 5, 5);
 
-      context.fillStyle = 'black';
-      context.fillRect(self.left-3, self.top+2, 36, 3);
-      context.fillRect(self.left+10, self.top+4, 8, 6);
-      context.fillRect(self.left+20, self.top+4, 8, 6);
+        context.fillStyle = 'black';
+        context.fillRect(self.left-3, self.top+2, 36, 3);
+        context.fillRect(self.left+10, self.top+4, 8, 6);
+        context.fillRect(self.left+20, self.top+4, 8, 6);
 
-      context.fillStyle = '#fff';
-      context.fillRect(self.left-3, self.top-7, 36, 5);
+        context.fillStyle = '#fff';
+        context.fillRect(self.left-3, self.top-7, 36, 5);
 
-      context.fillStyle = 'red'
-      context.fillRect(self.left, self.top-10, 30, 5);
-      context.fillRect(self.left-2, self.top-15, 25, 5);
-      context.fillRect(self.left-4, self.top-20, 20, 5);
-      context.fillRect(self.left-6, self.top-25, 15, 5);
-      context.fillRect(self.left-8, self.top-30, 10, 5);
+        context.fillStyle = 'red'
+        context.fillRect(self.left, self.top-10, 30, 5);
+        context.fillRect(self.left-2, self.top-15, 25, 5);
+        context.fillRect(self.left-4, self.top-20, 20, 5);
+        context.fillRect(self.left-6, self.top-25, 15, 5);
+        context.fillRect(self.left-8, self.top-30, 10, 5);
 
-      context.fillStyle = '#fff';
-      context.fillRect(self.left-8, self.top-35, 5, 5);
+        context.fillStyle = '#fff';
+        context.fillRect(self.left-8, self.top-35, 5, 5);
+      } else {
+        context.fillStyle = '#fff';
+        context.fillRect(self.left, self.top, 30, 30);
 
+        context.fillStyle = 'orange';
+        context.fillRect(self.left-5, self.top+5, 5, 5);
+        context.fillRect(self.left-10, self.top+10, 5, 5);
+        context.fillRect(self.left-10, self.top, 5, 5);
+
+        context.fillStyle = 'black';
+        context.fillRect(self.left-3, self.top+2, 36, 3);
+        context.fillRect(self.left+2, self.top+4, 8, 6);
+        context.fillRect(self.left+12, self.top+4, 8, 6);
+
+        context.fillStyle = '#fff';
+        context.fillRect(self.left-3, self.top-7, 36, 5);
+
+        context.fillStyle = 'red'
+        context.fillRect(self.left, self.top-10, 30, 5);
+        context.fillRect(self.left+7, self.top-15, 25, 5);
+        context.fillRect(self.left+15, self.top-20, 20, 5);
+        context.fillRect(self.left+22, self.top-25, 15, 5);
+        context.fillRect(self.left+29, self.top-30, 10, 5);
+
+        context.fillStyle = '#fff';
+        context.fillRect(self.left+34, self.top-35, 5, 5);
+      }
       context.restore();
     }
   });
@@ -133,12 +160,10 @@ Player.prototype.input = function(keysdown){
   }
 
   if ('W' in keysdown){
-    this.direction = 'up';
     this.velocity.y -= this.speed;
   }
 
   if ('S' in keysdown){
-    this.direction = 'down';
     this.velocity.y += this.speed;
   }
 };

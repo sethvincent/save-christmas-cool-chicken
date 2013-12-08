@@ -34,12 +34,10 @@ function Chicken(options){
   this.health = 100;
   this.strength = 5;
   this.color = '#f4f4ed';
-  this.direction = 'right';
   this.visible = true;
   this.left = this.position.x;
   this.top = this.position.y;
-
-  console.log(this)
+  this.direction = 'right';
 
   this.on('update', function(interval){ 
     self.move();
@@ -50,19 +48,33 @@ function Chicken(options){
     if (self.visible){
       context.save();  
 
-      context.fillStyle = '#fff';
-      context.fillRect(self.left, self.top, 30, 30);
+      if (this.speed.x > 0){
+        context.fillStyle = '#fff';
+        context.fillRect(self.left, self.top, 30, 30);
 
-      context.fillStyle = 'orange';
-      context.fillRect(self.left+30, self.top+5, 5, 5);
+        context.fillStyle = 'orange';
+        context.fillRect(self.left+30, self.top+5, 5, 5);
 
-      context.fillRect(self.left+35, self.top+10, 5, 5);
+        context.fillRect(self.left+35, self.top+10, 5, 5);
 
-      context.fillRect(self.left+35, self.top, 5, 5);
+        context.fillRect(self.left+35, self.top, 5, 5);
 
-      context.fillStyle = 'black';
-      context.fillRect(self.left+20, self.top+1, 3, 3);
-     
+        context.fillStyle = 'black';
+        context.fillRect(self.left+20, self.top+1, 3, 3);
+      } else {
+        context.fillStyle = '#fff';
+        context.fillRect(self.left, self.top, 30, 30);
+
+        context.fillStyle = 'orange';
+        context.fillRect(self.left-5, self.top+5, 5, 5);
+
+        context.fillRect(self.left-10, self.top+10, 5, 5);
+
+        context.fillRect(self.left-10, self.top, 5, 5);
+
+        context.fillStyle = 'black';
+        context.fillRect(self.left+5, self.top+1, 3, 3);        
+      }
       context.restore();
     }
   });
@@ -85,11 +97,15 @@ Chicken.prototype.boundaries = function(){
   if (this.position.x <= 0){
     this.position.x = 0;
     this.speed.x *= -1;
+    if (this.speed.x > 0) this.direction = 'left';
+    else this.direction = 'right';
   }
 
   if (this.position.x >= this.camera.map.width - this.size.x){
     this.position.x = this.camera.map.width - this.size.x;
     this.speed.x *= -1;
+    if (this.speed.x > 0) this.direction = 'left';
+    else this.direction = 'right';
   }
 
   if (this.position.y <= 0){

@@ -33,6 +33,14 @@ Map.prototype.generate = function(ticks){
     }
   }
 
+  // SAVE CHRISTMAS
+  context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  context.font = "bold 100px sans-serif";
+  context.fillText("SAVE XMAS", 200, this.game.height/2 - 100);
+  context.font = "bold 550px sans-serif";
+  context.fillText("→", 200, this.game.height/2 + 250);
+
+
 //CHRISTMAS TREE
   context.fillStyle = '#5C4033';
   context.fillRect(this.width-300, this.height-500, 10, 150);

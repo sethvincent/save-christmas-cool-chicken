@@ -8,6 +8,7 @@ var Map = require('./map');
 var Camera = require('./camera');
 var Player = require('./player');
 var Chicken = require('./chicken');
+var Snow = require('./snow');
 
 var randomRGB = require('./util/math').randomRGB;
 var randomInt = require('./util/math').randomInt;
@@ -17,7 +18,6 @@ var game = new Game({
   width: window.innerWidth,
   height: window.innerHeight
 });
-
 
 var keyboard = new Keyboard(game);
 var mouse = new Mouse(game);
@@ -42,22 +42,24 @@ player.on('update', function(interval){
   if (chickens.length > 0){
     for (var i=0; i<chickens.length; i++){
       if (player.touches(chickens[i])){
-        console.log(window)
         window.location = 'http://img.izismile.com/img/img2/20091201/chicken_across_the_world_05.jpg';
+        game.pause();
         player.color = randomRGB(0, 256, 0, 256, 0, 256);
       }
     }
   }
 
-  console.log(player.position.x > map.width - 310, player.position.x < map.width - 288)
-
-
-  if (player.position.x - player.size.x >= map.width - 310 && player.position.x <= map.width - 288){
-    console.log('working', player.position.x)
+  if (player.position.x >= map.width - 340 && player.position.x <= map.width - 250){
+    if (player.position.y > map.height - 520 && player.position.y < map.height - 350){
+      window.location = 'http://www.youtube.com/watch?v=2O6Qy-Bhyqs&feature=youtu.be&t=1m46s'
+      game.pause();
+    }
   }
 });
 
-game.on('update', function(interval){});
+game.on('update', function(interval){
+
+});
 
 game.on('draw-background', function(context){
   context.fillStyle = 'rgb(100, 200, 150)';
@@ -103,16 +105,25 @@ var camera = new Camera({
 */
 
 var chickens = [];
-for (var i=0; i<=50; i++){
-  console.log(i)
-
+for (var i=0; i<=10; i++){
   chickens[i] = new Chicken({
     game: game,
     camera: camera,
     map: map,
     position: {
-      x: randomInt(1500, map.width),
+      x: randomInt(1250, map.width),
       y: randomInt(0, 200)
     }
   }).addTo(game);
 }
+
+
+/*
+*
+* SNOW
+*
+*/
+
+window.setInterval(function(){
+  new Snow({ camera: camera, x: randomInt(0, game.width )}).addTo(game);
+}, 300);

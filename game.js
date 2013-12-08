@@ -48,6 +48,13 @@ player.on('update', function(interval){
       }
     }
   }
+
+  console.log(player.position.x > map.width - 310, player.position.x < map.width - 288)
+
+
+  if (player.position.x - player.size.x >= map.width - 310 && player.position.x <= map.width - 288){
+    console.log('working', player.position.x)
+  }
 });
 
 game.on('update', function(interval){});
@@ -77,7 +84,7 @@ game.on('resume', function(){
 *
 */
 
-var map = new Map(game, 8000, game.height);
+var map = new Map(game, 10000, game.height);
 map.generate();
 
 var camera = new Camera({
@@ -96,7 +103,7 @@ var camera = new Camera({
 */
 
 var chickens = [];
-for (var i=0; i<=100; i++){
+for (var i=0; i<=50; i++){
   console.log(i)
 
   chickens[i] = new Chicken({

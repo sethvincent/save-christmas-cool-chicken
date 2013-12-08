@@ -9,6 +9,9 @@ var Camera = require('./camera');
 var Player = require('./player');
 var Chicken = require('./chicken');
 
+var randomRGB = require('./util/math').randomRGB;
+var randomInt = require('./util/math').randomInt;
+
 var game = new Game({
   canvas: 'game',
   width: window.innerWidth,
@@ -33,24 +36,25 @@ var player = new Player({
 
 player.addTo(game);
 
+mouse.on('click', function(e){});
 
-mouse.on('click', function(e){
-  var c = new Chicken({
-    camera: camera,
-    map: map,
-    position: {
-      x: e.x + camera.position.x,
-      y: e.y
+player.on('update', function(interval){
+  if (chickens.length > 0){
+    for (var i=0; i<chickens.length; i++){
+      if (player.touches(chickens[i])){
+        console.log(window)
+        window.location = 'http://img.izismile.com/img/img2/20091201/chicken_across_the_world_05.jpg';
+        player.color = randomRGB(0, 256, 0, 256, 0, 256);
+      }
     }
-  });
-  c.addTo(game);
+  }
 });
-
-
 
 game.on('update', function(interval){});
 
 game.on('draw-background', function(context){
+  context.fillStyle = 'rgb(100, 200, 150)';
+  context.fillRect(0, 0, game.width, game.height);
   map.draw(context, camera);
 });
 
@@ -73,7 +77,7 @@ game.on('resume', function(){
 *
 */
 
-var map = new Map(game, 2000, game.height);
+var map = new Map(game, 8000, game.height);
 map.generate();
 
 var camera = new Camera({
@@ -83,3 +87,25 @@ var camera = new Camera({
   viewport: { width: game.width, height: game.height },
   map: map
 });
+
+
+/*
+*
+* CHICKENS
+*
+*/
+
+var chickens = [];
+for (var i=0; i<=100; i++){
+  console.log(i)
+
+  chickens[i] = new Chicken({
+    game: game,
+    camera: camera,
+    map: map,
+    position: {
+      x: randomInt(1500, map.width),
+      y: randomInt(0, 200)
+    }
+  }).addTo(game);
+}

@@ -23,9 +23,7 @@ function randomRGB(rmin, rmax, gmin, gmax, bmin, bmax){
   var r = randomInt(rmin, rmax);
   var g = randomInt(gmin, gmax);
   var b = randomInt(bmin, bmax);
-  console.log(r, g, b)
-  var color = 'rgb(0, 10, 10)';
-  return color;
+  return 'rgb(' + r + ', ' + g + ', ' + b + ')';
 }
 
 module.exports = {

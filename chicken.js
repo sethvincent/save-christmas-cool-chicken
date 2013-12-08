@@ -12,8 +12,8 @@ function Chicken(options){
   this.camera = options.camera;
 
   this.size = {
-    x: 20,
-    y: 20
+    x: 30,
+    y: 30
   };
 
   this.position = {
@@ -26,7 +26,10 @@ function Chicken(options){
     y: 0
   };
 
-  this.speed = 5;
+  this.speed = {
+    x: 5,
+    y: 5
+  };
   this.friction = 0.8;
   this.health = 100;
   this.strength = 5;
@@ -36,12 +39,10 @@ function Chicken(options){
   this.left = this.position.x;
   this.top = this.position.y;
 
-  console.log(this.camera.position.x, this.position.x, this.camera.map.width)
+  console.log(this)
 
   this.on('update', function(interval){ 
-    this.move();
-    self.velocity.x = parseInt(self.velocity.x * this.friction);
-    self.velocity.y = parseInt(self.velocity.y * this.friction);
+    self.move();
     self.boundaries();
   });
 
@@ -62,7 +63,6 @@ function Chicken(options){
       context.fillStyle = 'black';
       context.fillRect(self.left+20, self.top+1, 3, 3);
      
-
       context.restore();
     }
   });
@@ -71,11 +71,11 @@ function Chicken(options){
 inherits(Chicken, Entity);
 
 Chicken.prototype.move = function(){
-  this.velocity.x += this.speed;
-  this.velocity.y += this.speed;
-  
-  this.position.x += this.velocity.x * this.friction;
-  this.position.y += this.velocity.y * this.friction;
+  this.velocity.x = parseInt(this.velocity.x * this.friction);
+  this.velocity.y = parseInt(this.velocity.y * this.friction);
+
+  this.position.x += this.velocity.x + this.speed.x;
+  this.position.y += this.velocity.y + this.speed.y;
 
   this.left = this.position.x - this.camera.position.x;
   this.top = this.position.y;
@@ -84,17 +84,25 @@ Chicken.prototype.move = function(){
 Chicken.prototype.boundaries = function(){
   if (this.position.x <= 0){
     this.position.x = 0;
+    this.speed.x *= -1;
   }
 
   if (this.position.x >= this.camera.map.width - this.size.x){
     this.position.x = this.camera.map.width - this.size.x;
+    this.speed.x *= -1;
   }
 
   if (this.position.y <= 0){
     this.position.y = 0;
+    this.speed.y *= -1;
+    this.velocity.x = randomInt(-30, 30);
+    this.velocity.y = randomInt(-30, 30);
   }
 
   if (this.position.y >= this.camera.map.height - this.size.y){
     this.position.y = this.camera.map.height - this.size.y;
+    this.speed.y *= -1;
+    this.velocity.x = randomInt(-30, 30);
+    this.velocity.y = randomInt(-30, 30);
   }
 };

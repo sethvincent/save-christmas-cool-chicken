@@ -1,6 +1,7 @@
 var inherits = require('inherits');
 var Entity = require('crtrdg-entity');
 var randomInt = require('./util/math').randomInt;
+var randomRGB = require('./util/math').randomRGB;
 
 module.exports = Player;
 
@@ -11,8 +12,8 @@ function Player(options){
   this.game = options.game;
 
   this.size = {
-    x: 20,
-    y: 20
+    x: 40,
+    y: 30
   };
 
   this.position = {
@@ -29,7 +30,7 @@ function Player(options){
   this.friction = 0.8;
   this.health = 100;
   this.strength = 5;
-  this.color = '#f4f4ed';
+  this.color = randomRGB(0, 256, 0, 256, 0, 256);
   this.direction = 'right';
   this.visible = true;
   
@@ -45,6 +46,9 @@ function Player(options){
   this.keysDown = options.keyboard.keysDown;
   var keyboard = options.keyboard;
 
+  //this.left = this.position.x - this.camera.position.x;
+  //this.top = this.position.y - this.camera.position.y;
+
   this.on('update', function(interval){ 
     self.input(self.keysDown);
     self.move();
@@ -55,15 +59,37 @@ function Player(options){
 
   this.on('draw', function(context){
     if (self.visible){
+
+      self.left = self.position.x - self.camera.position.x;
+      self.top = self.position.y - self.camera.position.y;
+
       context.save();  
 
       context.fillStyle = '#fff';
-      context.fillRect(
-        self.position.x - self.camera.position.x, 
-        self.position.y - self.camera.position.y, 
-        self.size.x, 
-        self.size.y
-      );
+      context.fillRect(self.left, self.top, 30, 30);
+
+      context.fillStyle = 'orange';
+      context.fillRect(self.left+30, self.top+5, 5, 5);
+      context.fillRect(self.left+35, self.top+10, 5, 5);
+      context.fillRect(self.left+35, self.top, 5, 5);
+
+      context.fillStyle = 'black';
+      context.fillRect(self.left-3, self.top+2, 36, 3);
+      context.fillRect(self.left+10, self.top+4, 8, 6);
+      context.fillRect(self.left+20, self.top+4, 8, 6);
+
+      context.fillStyle = '#fff';
+      context.fillRect(self.left-3, self.top-7, 36, 5);
+
+      context.fillStyle = 'red'
+      context.fillRect(self.left, self.top-10, 30, 5);
+      context.fillRect(self.left-2, self.top-15, 25, 5);
+      context.fillRect(self.left-4, self.top-20, 20, 5);
+      context.fillRect(self.left-6, self.top-25, 15, 5);
+      context.fillRect(self.left-8, self.top-30, 10, 5);
+
+      context.fillStyle = '#fff';
+      context.fillRect(self.left-8, self.top-35, 5, 5);
 
       context.restore();
     }

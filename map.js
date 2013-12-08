@@ -32,10 +32,83 @@ Map.prototype.generate = function(ticks){
     }
   }
 
+//CHRISTMAS TREE
+  context.fillStyle = '#5C4033';
+  context.fillRect(this.width-300, this.height-500, 10, 150);
+
+  //TOP LEFT 
+  context.fillStyle = 'red';
+  context.fillRect(this.width-310, this.height-500, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-320, this.height-485, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-330, this.height-470, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-340, this.height-455, 8, 8);
+
+  //MIDDLE LEFT
+  context.fillRect(this.width-310, this.height-460, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-320, this.height-445, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-330, this.height-430, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-340, this.height-415, 8, 8);
+
+  //BOTTOM LEFT
+  context.fillStyle = 'white';
+  context.fillRect(this.width-310, this.height-420, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-320, this.height-405, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-330, this.height-390, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-340, this.height-375, 8, 8);
+  
+
+  //TOP RIGHT
+  context.fillRect(this.width-288, this.height-500, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-278, this.height-485, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-268, this.height-470, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-258, this.height-455, 8, 8);
+
+
+  //MIDDLE RIGHT
+  context.fillStyle = 'red';
+  context.fillRect(this.width-288, this.height-460, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-278, this.height-445, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-268, this.height-430, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-258, this.height-415, 8, 8);
+  
+
+
+  //BOTTOM RIGHT
+  context.fillStyle = 'red';
+  context.fillRect(this.width-288, this.height-420, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-278, this.height-405, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-268, this.height-390, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-258, this.height-375, 8, 8);
+
+
+
+  
+
+
   this.image = new Image();
   this.image.src = context.canvas.toDataURL("image/png");         
 
   context = null;
+
+
 }
 
 // draw the map adjusted to camera

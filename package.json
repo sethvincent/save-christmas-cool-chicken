@@ -7,7 +7,8 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "beefy game.js:bundle.js --live"
+    "start": "beefy game.js:bundle.js --live",
+    "bundle": "browserify game.js -o bundle.js"
   },
   "dependencies": {
     "crtrdg-scene": "0.0.2",

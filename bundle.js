@@ -1,4 +1,515 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*
+*
+* Camera
+*
+* options: {
+*   map: map,
+*   follow: player,
+*   followPoint: { x: game.width / 2, y: game.height / 2 },
+*   cameraStartPosition: { x: 0, y: 0 },
+*   viewport: { width: 25, height: 25 }
+* }
+*
+*/
+
+module.exports = Camera;
+
+function Camera(options){
+  var self = this;
+
+  this.map = options.map;
+  this.game = options.game;
+  this.following = options.follow;
+  this.following.camera = this;
+
+  this.followPoint = {
+    x: options.followPoint.x || null,
+    y: options.followPoint.y || null
+  };
+
+  this.position = options.cameraStartPosition || { x: 0, y: 0 };
+  
+  this.deadZone = options.deadZone || { x: options.viewport.width / 2, y: options.viewport.height / 2 };
+  
+  this.viewport = options.viewport;
+    
+  this.viewportRect = new Rectangle(this.position.x, this.position.y, this.viewport.width, this.viewport.height);       
+            
+  this.worldRect = new Rectangle(this.position.x, this.position.y, this.map.width, this.map.height);
+
+  this.game.on('update', function(){
+    self.update();
+  })
+}
+
+Camera.prototype.update = function(){
+  var following = this.following,
+  followPoint = this.followPoint;
+
+  if (following != null){   
+    if (followPoint.x !== null){  
+      
+      if(following.position.x - this.position.x + this.deadZone.x > this.viewport.width){
+        this.position.x = following.position.x - (this.viewport.width - this.deadZone.x);
+      }
+
+      else if(following.position.x - this.deadZone.x < this.position.x){
+        this.position.x = following.position.x - this.deadZone.x;
+      }
+    }
+
+    if (followPoint.y !== null){
+      if(following.position.y - this.position.y + this.deadZone.y > this.viewport.height){
+        this.position.y = following.position.y - (this.viewport.height - this.deadZone.y);
+      }
+
+      else if(following.position.y - this.deadZone.y < this.position.y) {
+        this.position.y = following.position.y - this.deadZone.y;
+      }
+    }           
+  }   
+
+  this.viewportRect.set(this.position.x, this.position.y, this.viewport.width, this.viewport.height);
+
+  if(!this.viewportRect.within(this.worldRect)){
+
+    if(this.viewportRect.left < this.worldRect.left){
+      this.position.x = this.worldRect.left;
+    }
+
+    if(this.viewportRect.top < this.worldRect.top){       
+      this.position.y = this.worldRect.top;
+    }
+
+    if(this.viewportRect.right > this.worldRect.right){
+      this.position.x = this.worldRect.right - this.viewport.width;
+    }
+
+    if(this.viewportRect.bottom > this.worldRect.bottom){
+      this.position.y = this.worldRect.bottom - this.viewport.height;
+    }
+
+  }
+  
+} 
+
+function Rectangle(left, top, width, height){
+  this.left = left || 0;
+  this.top = top || 0;
+  this.right = left + width || 0;
+  this.bottom = top + height || 0;
+}
+
+Rectangle.prototype.set = function(left, top, width, height){
+  this.left = left;
+  this.top = top;
+  this.width = width || this.width;
+  this.height = height || this.height
+  this.right = this.left + this.width;
+  this.bottom = this.top + this.height;
+}
+
+Rectangle.prototype.within = function(rectangle) {
+  return (
+    rectangle.left <= this.left && 
+    rectangle.right >= this.right &&
+    rectangle.top <= this.top && 
+    rectangle.bottom >= this.bottom
+  );
+}   
+
+Rectangle.prototype.overlaps = function(rectangle) {
+  return (
+    this.left < rectangle.right && 
+    this.right > rectangle.left && 
+    this.top < rectangle.bottom &&
+    this.bottom > rectangle.top
+  );
+}
+},{}],2:[function(require,module,exports){
+var inherits = require('inherits');
+var Entity = require('crtrdg-entity');
+var randomInt = require('./util/math').randomInt;
+
+module.exports = Chicken;
+
+function Chicken(options){
+  Entity.call(this);
+  var self = this;
+  this.game = options.game;
+  this.map = options.map;
+  this.camera = options.camera;
+
+  this.size = {
+    x: 30,
+    y: 30
+  };
+
+  this.position = {
+    x: options.position.x,
+    y: options.position.y,
+  };
+
+  this.velocity = {
+    x: 0,
+    y: 0
+  };
+
+  this.speed = {
+    x: 5,
+    y: 5
+  };
+  this.friction = 0.8;
+  this.health = 100;
+  this.strength = 5;
+  this.color = '#f4f4ed';
+  this.visible = true;
+  this.left = this.position.x;
+  this.top = this.position.y;
+  this.direction = 'right';
+
+  this.on('update', function(interval){ 
+    self.move();
+    self.boundaries();
+  });
+
+  this.on('draw', function(context){
+    if (self.visible){
+      context.save();  
+
+      if (this.speed.x > 0){
+        context.fillStyle = '#fff';
+        context.fillRect(self.left, self.top, 30, 30);
+
+        context.fillStyle = 'orange';
+        context.fillRect(self.left+30, self.top+5, 5, 5);
+
+        context.fillRect(self.left+35, self.top+10, 5, 5);
+
+        context.fillRect(self.left+35, self.top, 5, 5);
+
+        context.fillStyle = 'black';
+        context.fillRect(self.left+20, self.top+1, 3, 3);
+      } else {
+        context.fillStyle = '#fff';
+        context.fillRect(self.left, self.top, 30, 30);
+
+        context.fillStyle = 'orange';
+        context.fillRect(self.left-5, self.top+5, 5, 5);
+
+        context.fillRect(self.left-10, self.top+10, 5, 5);
+
+        context.fillRect(self.left-10, self.top, 5, 5);
+
+        context.fillStyle = 'black';
+        context.fillRect(self.left+5, self.top+1, 3, 3);        
+      }
+      context.restore();
+    }
+  });
+}
+
+inherits(Chicken, Entity);
+
+Chicken.prototype.move = function(){
+  this.velocity.x = parseInt(this.velocity.x * this.friction);
+  this.velocity.y = parseInt(this.velocity.y * this.friction);
+
+  this.position.x += this.velocity.x + this.speed.x;
+  this.position.y += this.velocity.y + this.speed.y;
+
+  this.left = this.position.x - this.camera.position.x;
+  this.top = this.position.y;
+};
+
+Chicken.prototype.boundaries = function(){
+  if (this.position.x <= 0){
+    this.position.x = 0;
+    this.speed.x *= -1;
+    if (this.speed.x > 0) this.direction = 'left';
+    else this.direction = 'right';
+  }
+
+  if (this.position.x >= this.camera.map.width - this.size.x){
+    this.position.x = this.camera.map.width - this.size.x;
+    this.speed.x *= -1;
+    if (this.speed.x > 0) this.direction = 'left';
+    else this.direction = 'right';
+  }
+
+  if (this.position.y <= 0){
+    this.position.y = 0;
+    this.speed.y *= -1;
+    this.velocity.x = randomInt(-30, 30);
+    this.velocity.y = randomInt(-30, 30);
+  }
+
+  if (this.position.y >= this.camera.map.height - this.size.y){
+    this.position.y = this.camera.map.height - this.size.y;
+    this.speed.y *= -1;
+    this.velocity.x = randomInt(-30, 30);
+    this.velocity.y = randomInt(-30, 30);
+  }
+};
+},{"./util/math":27,"crtrdg-entity":8,"inherits":24}],3:[function(require,module,exports){
+var Game = require('crtrdg-gameloop');
+var Keyboard = require('crtrdg-keyboard');
+var Mouse = require('crtrdg-mouse');
+var Scenes = require('crtrdg-scene');
+var Goals = require('crtrdg-goal');
+
+var Map = require('./map');
+var Camera = require('./camera');
+var Player = require('./player');
+var Chicken = require('./chicken');
+var Snow = require('./snow');
+
+var randomRGB = require('./util/math').randomRGB;
+var randomInt = require('./util/math').randomInt;
+
+var game = new Game({
+  canvas: 'game',
+  width: window.innerWidth,
+  height: window.innerHeight
+});
+
+var keyboard = new Keyboard(game);
+var mouse = new Mouse(game);
+
+/*
+*
+* PLAYER
+*
+*/
+
+var player = new Player({
+  game: game,
+  keyboard: keyboard,
+  camera: camera
+});
+
+player.addTo(game);
+
+mouse.on('click', function(e){});
+
+player.on('update', function(interval){
+  if (chickens.length > 0){
+    for (var i=0; i<chickens.length; i++){
+      if (player.touches(chickens[i])){
+        window.location = 'http://img.izismile.com/img/img2/20091201/chicken_across_the_world_05.jpg';
+        game.pause();
+        player.color = randomRGB(0, 256, 0, 256, 0, 256);
+      }
+    }
+  }
+
+  if (player.position.x >= map.width - 340 && player.position.x <= map.width - 250){
+    if (player.position.y > map.height - 520 && player.position.y < map.height - 350){
+      window.location = 'http://www.youtube.com/watch?v=2O6Qy-Bhyqs&feature=youtu.be&t=1m46s'
+      game.pause();
+    }
+  }
+});
+
+game.on('update', function(interval){
+
+});
+
+game.on('draw-background', function(context){
+  context.fillStyle = 'rgb(100, 200, 150)';
+  context.fillRect(0, 0, game.width, game.height);
+  map.draw(context, camera);
+});
+
+game.on('draw', function(context){
+  
+});
+
+game.on('pause', function(){
+  console.log('paused');
+});
+
+game.on('resume', function(){
+  console.log('resumed');
+});
+
+
+/*
+*
+* MAP & CAMERA
+*
+*/
+
+var map = new Map(game, 10000, game.height);
+map.generate();
+
+var camera = new Camera({
+  game: game,
+  follow: player,
+  followPoint: { x: game.width / 2 },
+  viewport: { width: game.width, height: game.height },
+  map: map
+});
+
+
+/*
+*
+* CHICKENS
+*
+*/
+
+var chickens = [];
+for (var i=0; i<=30; i++){
+  chickens[i] = new Chicken({
+    game: game,
+    camera: camera,
+    map: map,
+    position: {
+      x: randomInt(1250, map.width),
+      y: randomInt(0, 200)
+    }
+  }).addTo(game);
+}
+
+
+/*
+*
+* SNOW
+*
+*/
+
+window.setInterval(function(){
+  new Snow({ camera: camera, x: randomInt(0, game.width )}).addTo(game);
+}, 300);
+},{"./camera":1,"./chicken":2,"./map":4,"./player":25,"./snow":26,"./util/math":27,"crtrdg-gameloop":12,"crtrdg-goal":15,"crtrdg-keyboard":17,"crtrdg-mouse":20,"crtrdg-scene":22}],4:[function(require,module,exports){
+var randomInt = require('./util/math').randomInt;
+var randomGray = require('./util/math').randomGray;
+var randomGrayAlpha = require('./util/math').randomGrayAlpha;
+var randomRGBA = require('./util/math').randomRGBA;
+
+module.exports = Map;
+
+function Map(game, width, height){
+  console.log(width, height)
+  this.game = game;
+  this.width = width;
+  this.height = height;
+  this.image = null;
+  this.image = null;
+}
+
+Map.prototype.generate = function(ticks){
+  var context = document.createElement('canvas').getContext('2d');
+  
+  context.canvas.width = this.width;
+  context.canvas.height = this.height;
+
+  var blockSize = 4;
+  var rand = randomInt(0, 255);
+  var columns = parseInt(this.width / blockSize) + 1;
+  var rows = parseInt(this.height / blockSize) + 1;
+
+  for (var x = 0, i = 0; i < columns; x+=blockSize, i++){
+    for (var y = 0, j=0; j < rows; y+=blockSize, j++){
+
+      context.fillStyle = randomRGBA(200, 250, 20*j/100, 25*j/10, 20*i/100, 30*i/100, .9);
+      context.fillRect(x, y, blockSize, blockSize);
+    }
+  }
+
+  // SAVE CHRISTMAS
+  context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  context.font = "bold 100px sans-serif";
+  context.fillText("SAVE XMAS", 200, this.game.height/2 - 100);
+  context.font = "bold 550px sans-serif";
+  context.fillText("→", 200, this.game.height/2 + 250);
+
+
+//CHRISTMAS TREE
+  context.fillStyle = '#5C4033';
+  context.fillRect(this.width-300, this.height-500, 10, 150);
+
+  //TOP LEFT 
+  context.fillStyle = 'red';
+  context.fillRect(this.width-310, this.height-500, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-320, this.height-485, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-330, this.height-470, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-340, this.height-455, 8, 8);
+
+  //MIDDLE LEFT
+  context.fillRect(this.width-310, this.height-460, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-320, this.height-445, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-330, this.height-430, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-340, this.height-415, 8, 8);
+
+  //BOTTOM LEFT
+  context.fillStyle = 'white';
+  context.fillRect(this.width-310, this.height-420, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-320, this.height-405, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-330, this.height-390, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-340, this.height-375, 8, 8);
+  
+
+  //TOP RIGHT
+  context.fillRect(this.width-288, this.height-500, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-278, this.height-485, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-268, this.height-470, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-258, this.height-455, 8, 8);
+
+
+  //MIDDLE RIGHT
+  context.fillStyle = 'red';
+  context.fillRect(this.width-288, this.height-460, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-278, this.height-445, 8, 8);
+  context.fillStyle = 'red';
+  context.fillRect(this.width-268, this.height-430, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-258, this.height-415, 8, 8);
+  
+
+
+  //BOTTOM RIGHT
+  context.fillStyle = 'red';
+  context.fillRect(this.width-288, this.height-420, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-278, this.height-405, 8, 8);
+  context.fillStyle = 'green';
+  context.fillRect(this.width-268, this.height-390, 8, 8);
+  context.fillStyle = 'white';
+  context.fillRect(this.width-258, this.height-375, 8, 8);
+
+
+
+  
+
+
+  this.image = new Image();
+  this.image.src = context.canvas.toDataURL("image/png");         
+
+  context = null;
+
+
+}
+
+// draw the map adjusted to camera
+Map.prototype.draw = function(context, camera){
+  context.drawImage(this.image, 0, 0, this.image.width, this.image.height, -camera.position.x, -camera.position.y, this.image.width, this.image.height);
+}
+},{"./util/math":27}],5:[function(require,module,exports){
 
 
 //
@@ -216,7 +727,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],2:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -497,7 +1008,7 @@ EventEmitter.listenerCount = function(emitter, type) {
     ret = emitter._events[type].length;
   return ret;
 };
-},{"util":3}],3:[function(require,module,exports){
+},{"util":7}],7:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1042,518 +1553,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":1}],4:[function(require,module,exports){
-/*
-*
-* Camera
-*
-* options: {
-*   map: map,
-*   follow: player,
-*   followPoint: { x: game.width / 2, y: game.height / 2 },
-*   cameraStartPosition: { x: 0, y: 0 },
-*   viewport: { width: 25, height: 25 }
-* }
-*
-*/
-
-module.exports = Camera;
-
-function Camera(options){
-  var self = this;
-
-  this.map = options.map;
-  this.game = options.game;
-  this.following = options.follow;
-  this.following.camera = this;
-
-  this.followPoint = {
-    x: options.followPoint.x || null,
-    y: options.followPoint.y || null
-  };
-
-  this.position = options.cameraStartPosition || { x: 0, y: 0 };
-  
-  this.deadZone = options.deadZone || { x: options.viewport.width / 2, y: options.viewport.height / 2 };
-  
-  this.viewport = options.viewport;
-    
-  this.viewportRect = new Rectangle(this.position.x, this.position.y, this.viewport.width, this.viewport.height);       
-            
-  this.worldRect = new Rectangle(this.position.x, this.position.y, this.map.width, this.map.height);
-
-  this.game.on('update', function(){
-    self.update();
-  })
-}
-
-Camera.prototype.update = function(){
-  var following = this.following,
-  followPoint = this.followPoint;
-
-  if (following != null){   
-    if (followPoint.x !== null){  
-      
-      if(following.position.x - this.position.x + this.deadZone.x > this.viewport.width){
-        this.position.x = following.position.x - (this.viewport.width - this.deadZone.x);
-      }
-
-      else if(following.position.x - this.deadZone.x < this.position.x){
-        this.position.x = following.position.x - this.deadZone.x;
-      }
-    }
-
-    if (followPoint.y !== null){
-      if(following.position.y - this.position.y + this.deadZone.y > this.viewport.height){
-        this.position.y = following.position.y - (this.viewport.height - this.deadZone.y);
-      }
-
-      else if(following.position.y - this.deadZone.y < this.position.y) {
-        this.position.y = following.position.y - this.deadZone.y;
-      }
-    }           
-  }   
-
-  this.viewportRect.set(this.position.x, this.position.y, this.viewport.width, this.viewport.height);
-
-  if(!this.viewportRect.within(this.worldRect)){
-
-    if(this.viewportRect.left < this.worldRect.left){
-      this.position.x = this.worldRect.left;
-    }
-
-    if(this.viewportRect.top < this.worldRect.top){       
-      this.position.y = this.worldRect.top;
-    }
-
-    if(this.viewportRect.right > this.worldRect.right){
-      this.position.x = this.worldRect.right - this.viewport.width;
-    }
-
-    if(this.viewportRect.bottom > this.worldRect.bottom){
-      this.position.y = this.worldRect.bottom - this.viewport.height;
-    }
-
-  }
-  
-} 
-
-function Rectangle(left, top, width, height){
-  this.left = left || 0;
-  this.top = top || 0;
-  this.right = left + width || 0;
-  this.bottom = top + height || 0;
-}
-
-Rectangle.prototype.set = function(left, top, width, height){
-  this.left = left;
-  this.top = top;
-  this.width = width || this.width;
-  this.height = height || this.height
-  this.right = this.left + this.width;
-  this.bottom = this.top + this.height;
-}
-
-Rectangle.prototype.within = function(rectangle) {
-  return (
-    rectangle.left <= this.left && 
-    rectangle.right >= this.right &&
-    rectangle.top <= this.top && 
-    rectangle.bottom >= this.bottom
-  );
-}   
-
-Rectangle.prototype.overlaps = function(rectangle) {
-  return (
-    this.left < rectangle.right && 
-    this.right > rectangle.left && 
-    this.top < rectangle.bottom &&
-    this.bottom > rectangle.top
-  );
-}
-},{}],5:[function(require,module,exports){
-var inherits = require('inherits');
-var Entity = require('crtrdg-entity');
-var randomInt = require('./util/math').randomInt;
-
-module.exports = Chicken;
-
-function Chicken(options){
-  Entity.call(this);
-  var self = this;
-  this.game = options.game;
-  this.map = options.map;
-  this.camera = options.camera;
-
-  this.size = {
-    x: 30,
-    y: 30
-  };
-
-  this.position = {
-    x: options.position.x,
-    y: options.position.y,
-  };
-
-  this.velocity = {
-    x: 0,
-    y: 0
-  };
-
-  this.speed = {
-    x: 5,
-    y: 5
-  };
-  this.friction = 0.8;
-  this.health = 100;
-  this.strength = 5;
-  this.color = '#f4f4ed';
-  this.visible = true;
-  this.left = this.position.x;
-  this.top = this.position.y;
-  this.direction = 'right';
-
-  this.on('update', function(interval){ 
-    self.move();
-    self.boundaries();
-  });
-
-  this.on('draw', function(context){
-    if (self.visible){
-      context.save();  
-
-      if (this.speed.x > 0){
-        context.fillStyle = '#fff';
-        context.fillRect(self.left, self.top, 30, 30);
-
-        context.fillStyle = 'orange';
-        context.fillRect(self.left+30, self.top+5, 5, 5);
-
-        context.fillRect(self.left+35, self.top+10, 5, 5);
-
-        context.fillRect(self.left+35, self.top, 5, 5);
-
-        context.fillStyle = 'black';
-        context.fillRect(self.left+20, self.top+1, 3, 3);
-      } else {
-        context.fillStyle = '#fff';
-        context.fillRect(self.left, self.top, 30, 30);
-
-        context.fillStyle = 'orange';
-        context.fillRect(self.left-5, self.top+5, 5, 5);
-
-        context.fillRect(self.left-10, self.top+10, 5, 5);
-
-        context.fillRect(self.left-10, self.top, 5, 5);
-
-        context.fillStyle = 'black';
-        context.fillRect(self.left+5, self.top+1, 3, 3);        
-      }
-      context.restore();
-    }
-  });
-}
-
-inherits(Chicken, Entity);
-
-Chicken.prototype.move = function(){
-  this.velocity.x = parseInt(this.velocity.x * this.friction);
-  this.velocity.y = parseInt(this.velocity.y * this.friction);
-
-  this.position.x += this.velocity.x + this.speed.x;
-  this.position.y += this.velocity.y + this.speed.y;
-
-  this.left = this.position.x - this.camera.position.x;
-  this.top = this.position.y;
-};
-
-Chicken.prototype.boundaries = function(){
-  if (this.position.x <= 0){
-    this.position.x = 0;
-    this.speed.x *= -1;
-    if (this.speed.x > 0) this.direction = 'left';
-    else this.direction = 'right';
-  }
-
-  if (this.position.x >= this.camera.map.width - this.size.x){
-    this.position.x = this.camera.map.width - this.size.x;
-    this.speed.x *= -1;
-    if (this.speed.x > 0) this.direction = 'left';
-    else this.direction = 'right';
-  }
-
-  if (this.position.y <= 0){
-    this.position.y = 0;
-    this.speed.y *= -1;
-    this.velocity.x = randomInt(-30, 30);
-    this.velocity.y = randomInt(-30, 30);
-  }
-
-  if (this.position.y >= this.camera.map.height - this.size.y){
-    this.position.y = this.camera.map.height - this.size.y;
-    this.speed.y *= -1;
-    this.velocity.x = randomInt(-30, 30);
-    this.velocity.y = randomInt(-30, 30);
-  }
-};
-},{"./util/math":27,"crtrdg-entity":8,"inherits":24}],6:[function(require,module,exports){
-var Game = require('crtrdg-gameloop');
-var Keyboard = require('crtrdg-keyboard');
-var Mouse = require('crtrdg-mouse');
-var Scenes = require('crtrdg-scene');
-var Goals = require('crtrdg-goal');
-
-var Map = require('./map');
-var Camera = require('./camera');
-var Player = require('./player');
-var Chicken = require('./chicken');
-var Snow = require('./snow');
-
-var randomRGB = require('./util/math').randomRGB;
-var randomInt = require('./util/math').randomInt;
-
-var game = new Game({
-  canvas: 'game',
-  width: window.innerWidth,
-  height: window.innerHeight
-});
-
-var keyboard = new Keyboard(game);
-var mouse = new Mouse(game);
-
-/*
-*
-* PLAYER
-*
-*/
-
-var player = new Player({
-  game: game,
-  keyboard: keyboard,
-  camera: camera
-});
-
-player.addTo(game);
-
-mouse.on('click', function(e){});
-
-player.on('update', function(interval){
-  if (chickens.length > 0){
-    for (var i=0; i<chickens.length; i++){
-      if (player.touches(chickens[i])){
-        window.location = 'http://img.izismile.com/img/img2/20091201/chicken_across_the_world_05.jpg';
-        game.pause();
-        player.color = randomRGB(0, 256, 0, 256, 0, 256);
-      }
-    }
-  }
-
-  if (player.position.x >= map.width - 340 && player.position.x <= map.width - 250){
-    if (player.position.y > map.height - 520 && player.position.y < map.height - 350){
-      window.location = 'http://www.youtube.com/watch?v=2O6Qy-Bhyqs&feature=youtu.be&t=1m46s'
-      game.pause();
-    }
-  }
-});
-
-game.on('update', function(interval){
-
-});
-
-game.on('draw-background', function(context){
-  context.fillStyle = 'rgb(100, 200, 150)';
-  context.fillRect(0, 0, game.width, game.height);
-  map.draw(context, camera);
-});
-
-game.on('draw', function(context){
-  
-});
-
-game.on('pause', function(){
-  console.log('paused');
-});
-
-game.on('resume', function(){
-  console.log('resumed');
-});
-
-
-/*
-*
-* MAP & CAMERA
-*
-*/
-
-var map = new Map(game, 10000, game.height);
-map.generate();
-
-var camera = new Camera({
-  game: game,
-  follow: player,
-  followPoint: { x: game.width / 2 },
-  viewport: { width: game.width, height: game.height },
-  map: map
-});
-
-
-/*
-*
-* CHICKENS
-*
-*/
-
-var chickens = [];
-for (var i=0; i<=10; i++){
-  chickens[i] = new Chicken({
-    game: game,
-    camera: camera,
-    map: map,
-    position: {
-      x: randomInt(1250, map.width),
-      y: randomInt(0, 200)
-    }
-  }).addTo(game);
-}
-
-
-/*
-*
-* SNOW
-*
-*/
-
-window.setInterval(function(){
-  new Snow({ camera: camera, x: randomInt(0, game.width )}).addTo(game);
-}, 300);
-},{"./camera":4,"./chicken":5,"./map":7,"./player":25,"./snow":26,"./util/math":27,"crtrdg-gameloop":12,"crtrdg-goal":15,"crtrdg-keyboard":17,"crtrdg-mouse":20,"crtrdg-scene":22}],7:[function(require,module,exports){
-var randomInt = require('./util/math').randomInt;
-var randomGray = require('./util/math').randomGray;
-var randomGrayAlpha = require('./util/math').randomGrayAlpha;
-var randomRGBA = require('./util/math').randomRGBA;
-
-module.exports = Map;
-
-function Map(game, width, height){
-  console.log(width, height)
-  this.game = game;
-  this.width = width;
-  this.height = height;
-  this.image = null;
-  this.image = null;
-}
-
-Map.prototype.generate = function(ticks){
-  var context = document.createElement('canvas').getContext('2d');
-  
-  context.canvas.width = this.width;
-  context.canvas.height = this.height;
-
-  var blockSize = 4;
-  var rand = randomInt(0, 255);
-  var columns = parseInt(this.width / blockSize) + 1;
-  var rows = parseInt(this.height / blockSize) + 1;
-
-  for (var x = 0, i = 0; i < columns; x+=blockSize, i++){
-    for (var y = 0, j=0; j < rows; y+=blockSize, j++){
-
-      context.fillStyle = randomRGBA(200, 250, 20*j/100, 25*j/10, 20*i/100, 30*i/100, .9);
-      context.fillRect(x, y, blockSize, blockSize);
-    }
-  }
-
-  // SAVE CHRISTMAS
-  context.fillStyle = 'rgba(255, 255, 255, 0.5)';
-  context.font = "bold 100px sans-serif";
-  context.fillText("SAVE XMAS", 200, this.game.height/2 - 100);
-  context.font = "bold 550px sans-serif";
-  context.fillText("→", 200, this.game.height/2 + 250);
-
-
-//CHRISTMAS TREE
-  context.fillStyle = '#5C4033';
-  context.fillRect(this.width-300, this.height-500, 10, 150);
-
-  //TOP LEFT 
-  context.fillStyle = 'red';
-  context.fillRect(this.width-310, this.height-500, 8, 8);
-  context.fillStyle = 'white';
-  context.fillRect(this.width-320, this.height-485, 8, 8);
-  context.fillStyle = 'red';
-  context.fillRect(this.width-330, this.height-470, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-340, this.height-455, 8, 8);
-
-  //MIDDLE LEFT
-  context.fillRect(this.width-310, this.height-460, 8, 8);
-  context.fillStyle = 'red';
-  context.fillRect(this.width-320, this.height-445, 8, 8);
-  context.fillStyle = 'white';
-  context.fillRect(this.width-330, this.height-430, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-340, this.height-415, 8, 8);
-
-  //BOTTOM LEFT
-  context.fillStyle = 'white';
-  context.fillRect(this.width-310, this.height-420, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-320, this.height-405, 8, 8);
-  context.fillStyle = 'red';
-  context.fillRect(this.width-330, this.height-390, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-340, this.height-375, 8, 8);
-  
-
-  //TOP RIGHT
-  context.fillRect(this.width-288, this.height-500, 8, 8);
-  context.fillStyle = 'red';
-  context.fillRect(this.width-278, this.height-485, 8, 8);
-  context.fillStyle = 'white';
-  context.fillRect(this.width-268, this.height-470, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-258, this.height-455, 8, 8);
-
-
-  //MIDDLE RIGHT
-  context.fillStyle = 'red';
-  context.fillRect(this.width-288, this.height-460, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-278, this.height-445, 8, 8);
-  context.fillStyle = 'red';
-  context.fillRect(this.width-268, this.height-430, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-258, this.height-415, 8, 8);
-  
-
-
-  //BOTTOM RIGHT
-  context.fillStyle = 'red';
-  context.fillRect(this.width-288, this.height-420, 8, 8);
-  context.fillStyle = 'white';
-  context.fillRect(this.width-278, this.height-405, 8, 8);
-  context.fillStyle = 'green';
-  context.fillRect(this.width-268, this.height-390, 8, 8);
-  context.fillStyle = 'white';
-  context.fillRect(this.width-258, this.height-375, 8, 8);
-
-
-
-  
-
-
-  this.image = new Image();
-  this.image.src = context.canvas.toDataURL("image/png");         
-
-  context = null;
-
-
-}
-
-// draw the map adjusted to camera
-Map.prototype.draw = function(context, camera){
-  context.drawImage(this.image, 0, 0, this.image.width, this.image.height, -camera.position.x, -camera.position.y, this.image.width, this.image.height);
-}
-},{"./util/math":27}],8:[function(require,module,exports){
+},{"_shims":5}],8:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 var aabb = require('aabb-2d');
@@ -1644,7 +1644,7 @@ Entity.prototype.setBoundingBox = function(){
   this.boundingBox = aabb([this.position.x, this.position.y], [this.size.x, this.size.y]);  
 };
 
-},{"aabb-2d":9,"events":2,"inherits":11}],9:[function(require,module,exports){
+},{"aabb-2d":9,"events":6,"inherits":11}],9:[function(require,module,exports){
 module.exports = AABB
 
 var vec2 = require('gl-matrix').vec2
@@ -4927,7 +4927,7 @@ Game.prototype.draw = function(){
   this.emit('draw', this.context);
   this.emit('draw-foreground', this.context);
 };
-},{"events":2,"inherits":13,"raf":14}],13:[function(require,module,exports){
+},{"events":6,"inherits":13,"raf":14}],13:[function(require,module,exports){
 module.exports=require(11)
 },{}],14:[function(require,module,exports){
 module.exports = raf
@@ -4982,7 +4982,7 @@ raf.polyfill = _raf
 raf.now = now
 
 
-},{"events":2}],15:[function(require,module,exports){
+},{"events":6}],15:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 
@@ -5056,7 +5056,7 @@ inherits(Goal, EventEmitter);
 function Goal(settings){
   this.name = settings.name;
 }
-},{"events":2,"inherits":16}],16:[function(require,module,exports){
+},{"events":6,"inherits":16}],16:[function(require,module,exports){
 module.exports=require(11)
 },{}],17:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
@@ -5089,7 +5089,7 @@ Keyboard.prototype.initializeListeners = function(){
     delete self.keysDown[vkey[e.keyCode]];
   }, false);
 };
-},{"events":2,"inherits":18,"vkey":19}],18:[function(require,module,exports){
+},{"events":6,"inherits":18,"vkey":19}],18:[function(require,module,exports){
 module.exports=require(11)
 },{}],19:[function(require,module,exports){
 var ua = typeof window !== 'undefined' ? window.navigator.userAgent : ''
@@ -5296,7 +5296,7 @@ Mouse.prototype.calculateOffset = function(e, callback){
   callback(location);
 }
 
-},{"events":2,"inherits":21}],21:[function(require,module,exports){
+},{"events":6,"inherits":21}],21:[function(require,module,exports){
 module.exports=require(11)
 },{}],22:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
@@ -5369,7 +5369,7 @@ Scene.prototype.draw = function(context){
   this.emit('draw', context);
 };
 
-},{"events":2,"inherits":23}],23:[function(require,module,exports){
+},{"events":6,"inherits":23}],23:[function(require,module,exports){
 module.exports=require(11)
 },{}],24:[function(require,module,exports){
 module.exports=require(11)
@@ -5616,5 +5616,5 @@ module.exports = {
   randomGray: randomGray,
   randomGrayAlpha: randomGray
 };
-},{}]},{},[6])
+},{}]},{},[3])
 ;

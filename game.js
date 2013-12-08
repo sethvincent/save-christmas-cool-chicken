@@ -105,7 +105,7 @@ var camera = new Camera({
 */
 
 var chickens = [];
-for (var i=0; i<=10; i++){
+for (var i=0; i<=30; i++){
   chickens[i] = new Chicken({
     game: game,
     camera: camera,
